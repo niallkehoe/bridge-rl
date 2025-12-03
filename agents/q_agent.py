@@ -1,6 +1,7 @@
 from game.agent import BridgePlayAgent
 from game.game_state import PlayObservation, PlayerType
 from game.card import Card
+from typing import List, Optional, Dict, Tuple
 import torch
 from torch import nn
 
@@ -112,10 +113,25 @@ class DeepQLearningAgent(BridgePlayAgent):
             return
         self.optimizer.zero_grad()
         formatted_observation = self.format_observation(observation)
-        next_formatted_observation = self.format_observation(next_observation)
         q_values = self.q_network(formatted_observation)
         q_value = self.format_response(q_values, observation, formatted_observation)[1]
-        target = reward + 0.99 * max(self.q_network(next_formatted_observation) * (next_formatted_observation[:52] > 0))
+        if next_observation is None:
+            target = reward
+        else:
+            next_formatted_observation = self.format_observation(next_observation)
+            target = reward + 0.99 * max(self.q_network(next_formatted_observation) * (next_formatted_observation[:52] > 0))
         loss = (q_value - target)**2
         loss.backward()
         self.optimizer.step()
+
+    def on_game_end(self, observation_action_history: Dict['PlayerType', List[Tuple['PlayObservation', Card]]], lead_score: int, defender_score: int):
+        personal_history = observation_action_history[self.player_type]
+        if self.training:
+            for i in range(len(personal_history)):
+                if i == len(personal_history) - 1:
+                    reward = lead_score - defender_score
+                    next_observation = None
+                else:
+                    reward = 0
+                    next_observation = personal_history[i+1][0]
+                self.feedback(personal_history[i][0], personal_history[i][1], reward, next_observation)
