@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List, Optional, Dict, Tuple
 from enum import IntEnum
 from game.card import Card
 
@@ -41,10 +41,12 @@ class PlayObservation:
 
 @dataclass
 class GameResult:
-    """Result of a completed Bridge Play game (stge 2)."""
+    """Result of a completed Bridge Play game (stage 2)."""
     lead_tricks: int
     defender_tricks: int
     contract: int
     lead_score: int
     defender_score: int
     trick_history: List[List[Card]] = field(default_factory=list)
+    # Per-player history: PlayerType -> List of (observation, action) tuples
+    observation_action_history: Dict['PlayerType', List[Tuple['PlayObservation', Card]]] = field(default_factory=dict)

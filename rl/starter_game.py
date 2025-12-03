@@ -5,16 +5,21 @@ from pathlib import Path
 sys.path.append("../")
 
 from game.game import BridgePlay
-from game.game_state import PlayerType
+from game.game_state import PlayerType, PlayObservation, GameResult
+from game.card import Card
 from agents.random_agent import RandomAgent
 from agents.high_card_agent import HighCardAgent
 from agents.low_card_agent import LowCardAgent
 from agents.rule_based_agent import RuleBasedAgent
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Callable, Optional
 import time
 
 
 class GameRunner:
+    
+    # Type alias for callback function
+    # observation_action_history: Dict[PlayerType, List[Tuple[PlayObservation, Card]]]
+    GameCallback = Callable[[Dict[PlayerType, List[Tuple[PlayObservation, Card]]], int, int], None]
     
     def __init__(
         self,
@@ -22,7 +27,8 @@ class GameRunner:
         dummy_agent_class,
         defender2_agent_class,
         lead_agent_class,
-        contract: int = 7
+        contract: int = 7,
+        on_game_end: Optional[GameCallback] = None
     ):
         """
         Initialize the game runner.
@@ -33,12 +39,16 @@ class GameRunner:
             defender2_agent_class: Class for DEFENDER_2 agent  
             lead_agent_class: Class for LEAD agent
             contract: Number of tricks to bid (default: 7)
+            on_game_end: Optional callback called after each game with [for RL feedback]:
+                         (observation_action_history, lead_score, defender_score)
+                         where observation_action_history is Dict[PlayerType, List[Tuple[PlayObservation, Card]]]
         """
         self.defender1_class = defender1_agent_class
         self.dummy_class = dummy_agent_class
         self.defender2_class = defender2_agent_class
         self.lead_class = lead_agent_class
         self.contract = contract
+        self.on_game_end = on_game_end
         
         # Statistics
         self.results: List[Dict] = []
@@ -66,6 +76,15 @@ class GameRunner:
         )
         
         result = game.play_game()
+        
+        # Call callback if provided
+        if self.on_game_end:
+            assert all(len(result.observation_action_history[player]) == 13 for player in PlayerType)
+            self.on_game_end(
+                result.observation_action_history,
+                result.lead_score,
+                result.defender_score
+            )
         
         # Extract statistics
         stats = {

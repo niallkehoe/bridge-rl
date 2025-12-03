@@ -67,6 +67,14 @@ class BridgePlay:
         self.current_player = PlayerType.DEFENDER_1  # Defender 1 leads first trick
         self.trick_index = 0
         
+        # History tracking for callbacks/RL - per player
+        self.observation_action_history: Dict[PlayerType, List[Tuple[PlayObservation, Card]]] = {
+            PlayerType.DEFENDER_1: [],
+            PlayerType.DUMMY: [],
+            PlayerType.DEFENDER_2: [],
+            PlayerType.LEAD: [],
+        }
+        
     def create_deck(self) -> List[Card]:
         """Create a standard 52-card deck."""
         return [Card(suit, rank) for suit in self.SUITS for rank in self.RANKS]
@@ -191,6 +199,9 @@ class BridgePlay:
             observation = self.get_observation(self.current_player)
             card = agent.get_action(observation)
             
+            # Record history for callbacks/RL (per player)
+            self.observation_action_history[self.current_player].append((observation, card))
+            
             # Play the card
             self.play_card(self.current_player, card)
             
@@ -247,4 +258,5 @@ class BridgePlay:
             lead_score=lead_score,
             defender_score=defender_score,
             trick_history=self.trick_history,
+            observation_action_history=self.observation_action_history,
         )
