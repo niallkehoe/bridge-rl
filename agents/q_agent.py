@@ -23,11 +23,10 @@ class QLearningNetwork(nn.Module):
 class DeepQLearningAgent(BridgePlayAgent):
     """
     Agent that contains a network for computing Q-values and uses Q-learning to select actions.
-    Note: currently only works for the first player (Defender 1)
     """
     
     def __init__(self, player_type: PlayerType):
-        self.q_network = QLearningNetwork(13*8+2, 52)
+        self.q_network = QLearningNetwork(13*8+player_type+2+4*(player_type != PlayerType.DEFENDER_1), 52)
         self.optimizer = torch.optim.Adam(self.q_network.parameters(), lr=0.001)
         self.training = False
         super().__init__(player_type)
@@ -53,7 +52,7 @@ class DeepQLearningAgent(BridgePlayAgent):
         q_values = self.q_network(formatted_observation)
         return self.format_response(q_values, observation, formatted_observation)
     
-    def format_observation(self, observation: PlayObservation) -> list[float]:
+    def format_observation(self, observation: PlayObservation) -> list[float]:            
         club_hand = []
         diamond_hand = []
         heart_hand = []
@@ -91,6 +90,10 @@ class DeepQLearningAgent(BridgePlayAgent):
         dummy_spade_hand = sorted(dummy_spade_hand, reverse=True) + [0] * (13 - len(dummy_spade_hand))
 
         formatted_observation = club_hand + diamond_hand + heart_hand + spade_hand + dummy_club_hand + dummy_diamond_hand + [observation.contract, observation.tricks_won]
+        
+        if self.player_type != PlayerType.DEFENDER_1:
+            trick_suit = observation.current_trick[0].suit
+            formatted_observation += [(card.rank_value() if card.suit == trick_suit else 0) for card in observation.current_trick] +[trick_suit == suit for suit in ['C', 'D', 'H', 'S']]
 
         return torch.tensor(formatted_observation, dtype=torch.float32)
     
