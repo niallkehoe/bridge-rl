@@ -23,10 +23,10 @@ class GameRunner:
     
     def __init__(
         self,
-        defender1_agent_class,
-        dummy_agent_class,
-        defender2_agent_class,
-        lead_agent_class,
+        defender1_agent,
+        dummy_agent,
+        defender2_agent,
+        lead_agent,
         contract: int = 7,
         on_game_end: Optional[GameCallback] = None
     ):
@@ -34,19 +34,19 @@ class GameRunner:
         Initialize the game runner.
         
         Args:
-            defender1_agent_class: Class for DEFENDER_1 agent
-            dummy_agent_class: Class for DUMMY agent
-            defender2_agent_class: Class for DEFENDER_2 agent  
-            lead_agent_class: Class for LEAD agent
+            defender1_agent: Agent instance for DEFENDER_1
+            dummy_agent: Agent instance for DUMMY
+            defender2_agent: Agent instance for DEFENDER_2  
+            lead_agent: Agent instance for LEAD
             contract: Number of tricks to bid (default: 7)
             on_game_end: Optional callback called after each game with [for RL feedback]:
                          (observation_action_history, lead_score, defender_score)
                          where observation_action_history is Dict[PlayerType, List[Tuple[PlayObservation, Card]]]
         """
-        self.defender1_class = defender1_agent_class
-        self.dummy_class = dummy_agent_class
-        self.defender2_class = defender2_agent_class
-        self.lead_class = lead_agent_class
+        self.defender1 = defender1_agent
+        self.dummy = dummy_agent
+        self.defender2 = defender2_agent
+        self.lead = lead_agent
         self.contract = contract
         self.on_game_end = on_game_end
         
@@ -60,19 +60,13 @@ class GameRunner:
         Returns:
             Dictionary with game statistics
         """
-        # Create fresh agents for this game
-        defender1 = self.defender1_class(PlayerType.DEFENDER_1)
-        dummy = self.dummy_class(PlayerType.DUMMY)
-        defender2 = self.defender2_class(PlayerType.DEFENDER_2)
-        lead = self.lead_class(PlayerType.LEAD)
-        
-        # Create and play game
+        # Create and play game with reusable agent instances
         game = BridgePlay(
             contract=self.contract,
-            defender1_agent=defender1,
-            dummy_agent=dummy,
-            defender2_agent=defender2,
-            lead_agent=lead
+            defender1_agent=self.defender1,
+            dummy_agent=self.dummy,
+            defender2_agent=self.defender2,
+            lead_agent=self.lead
         )
         
         result = game.play_game()
@@ -113,10 +107,10 @@ class GameRunner:
         if verbose:
             print(f"\n{'='*60}")
             print(f"Running {n_games} games")
-            print(f"  Defender 1: {self.defender1_class.__name__}")
-            print(f"  Dummy: {self.dummy_class.__name__}")
-            print(f"  Defender 2: {self.defender2_class.__name__}")
-            print(f"  Lead: {self.lead_class.__name__}")
+            print(f"  Defender 1: {self.defender1.__class__.__name__}")
+            print(f"  Dummy: {self.dummy.__class__.__name__}")
+            print(f"  Defender 2: {self.defender2.__class__.__name__}")
+            print(f"  Lead: {self.lead.__class__.__name__}")
             print(f"  Contract: {self.contract}")
             print(f"{'='*60}\n")
         
@@ -254,10 +248,10 @@ def run_baseline_comparison():
     for config in configs:
         print(f"\nTesting: {config['name']}")
         runner = GameRunner(
-            defender1_agent_class=config['defender1'],
-            dummy_agent_class=config['dummy'],
-            defender2_agent_class=config['defender2'],
-            lead_agent_class=config['lead'],
+            defender1_agent=config['defender1'](PlayerType.DEFENDER_1),
+            dummy_agent=config['dummy'](PlayerType.DUMMY),
+            defender2_agent=config['defender2'](PlayerType.DEFENDER_2),
+            lead_agent=config['lead'](PlayerType.LEAD),
             contract=7
         )
         
@@ -288,10 +282,10 @@ def main():
     # Example 1: Run a single configuration
     print("\nExample 1: Single Configuration")
     runner = GameRunner(
-        defender1_agent_class=RandomAgent,
-        dummy_agent_class=RandomAgent,
-        defender2_agent_class=RandomAgent,
-        lead_agent_class=HighCardAgent,
+        defender1_agent=RandomAgent(PlayerType.DEFENDER_1),
+        dummy_agent=RandomAgent(PlayerType.DUMMY),
+        defender2_agent=RandomAgent(PlayerType.DEFENDER_2),
+        lead_agent=HighCardAgent(PlayerType.LEAD),
         contract=7
     )
     runner.run_games(n_games=1000)
