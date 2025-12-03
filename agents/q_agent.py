@@ -47,10 +47,8 @@ class DeepQLearningAgent(BridgePlayAgent):
         Returns:
             Card to play
         """
-        print(observation)
         formatted_observation = self.format_observation(observation)
         q_values = self.q_network(formatted_observation)
-        print(self.format_response(q_values, observation, formatted_observation), observation.legal_actions)
         return self.format_response(q_values, observation, formatted_observation)[0]
     
     def format_observation(self, observation: PlayObservation) -> list[float]:            
