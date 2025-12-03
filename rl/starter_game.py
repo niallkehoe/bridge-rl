@@ -18,6 +18,7 @@ class GameRunner:
     def __init__(
         self,
         defender1_agent_class,
+        dummy_agent_class,
         defender2_agent_class,
         lead_agent_class,
         contract: int = 7
@@ -27,11 +28,13 @@ class GameRunner:
         
         Args:
             defender1_agent_class: Class for DEFENDER_1 agent
+            dummy_agent_class: Class for DUMMY agent
             defender2_agent_class: Class for DEFENDER_2 agent  
             lead_agent_class: Class for LEAD agent
             contract: Number of tricks to bid (default: 7)
         """
         self.defender1_class = defender1_agent_class
+        self.dummy_class = dummy_agent_class
         self.defender2_class = defender2_agent_class
         self.lead_class = lead_agent_class
         self.contract = contract
@@ -48,6 +51,7 @@ class GameRunner:
         """
         # Create fresh agents for this game
         defender1 = self.defender1_class(PlayerType.DEFENDER_1)
+        dummy = self.dummy_class(PlayerType.DUMMY)
         defender2 = self.defender2_class(PlayerType.DEFENDER_2)
         lead = self.lead_class(PlayerType.LEAD)
         
@@ -55,6 +59,7 @@ class GameRunner:
         game = BridgePlay(
             contract=self.contract,
             defender1_agent=defender1,
+            dummy_agent=dummy,
             defender2_agent=defender2,
             lead_agent=lead
         )
@@ -89,6 +94,7 @@ class GameRunner:
             print(f"\n{'='*60}")
             print(f"Running {n_games} games")
             print(f"  Defender 1: {self.defender1_class.__name__}")
+            print(f"  Dummy: {self.dummy_class.__name__}")
             print(f"  Defender 2: {self.defender2_class.__name__}")
             print(f"  Lead: {self.lead_class.__name__}")
             print(f"  Contract: {self.contract}")
@@ -175,30 +181,35 @@ def run_baseline_comparison():
         {
             'name': 'All Random',
             'defender1': RandomAgent,
+            'dummy': RandomAgent,
             'defender2': RandomAgent,
             'lead': RandomAgent,
         },
         {
             'name': 'High Lead vs Random Defenders',
             'defender1': RandomAgent,
+            'dummy': RandomAgent,
             'defender2': RandomAgent,
             'lead': HighCardAgent,
         },
         {
             'name': 'Low Lead vs Random Defenders',
             'defender1': RandomAgent,
+            'dummy': RandomAgent,
             'defender2': RandomAgent,
             'lead': LowCardAgent,
         },
         {
             'name': 'Random Lead vs High Defenders',
             'defender1': HighCardAgent,
+            'dummy': RandomAgent,
             'defender2': HighCardAgent,
             'lead': RandomAgent,
         },
         {
             'name': 'High Everyone',
             'defender1': HighCardAgent,
+            'dummy': HighCardAgent,
             'defender2': HighCardAgent,
             'lead': HighCardAgent,
         },
@@ -210,6 +221,7 @@ def run_baseline_comparison():
         print(f"\nTesting: {config['name']}")
         runner = GameRunner(
             defender1_agent_class=config['defender1'],
+            dummy_agent_class=config['dummy'],
             defender2_agent_class=config['defender2'],
             lead_agent_class=config['lead'],
             contract=7
@@ -243,6 +255,7 @@ def main():
     print("\nExample 1: Single Configuration")
     runner = GameRunner(
         defender1_agent_class=RandomAgent,
+        dummy_agent_class=RandomAgent,
         defender2_agent_class=RandomAgent,
         lead_agent_class=HighCardAgent,
         contract=7

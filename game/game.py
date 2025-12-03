@@ -35,6 +35,7 @@ class BridgePlay:
     def __init__(self, 
                  contract: int,
                  defender1_agent: BridgePlayAgent,
+                 dummy_agent: BridgePlayAgent,
                  defender2_agent: BridgePlayAgent,
                  lead_agent: BridgePlayAgent
     ):
@@ -44,12 +45,14 @@ class BridgePlay:
         Args:
             contract: Number of tricks the lead team bid to win
             defender1_agent: Agent for player 0 (Defender 1)
+            dummy_agent: Agent for player 1 (Dummy)
             defender2_agent: Agent for player 2 (Defender 2)
-            lead_agent: Agent for player 3 (Lead, also controls Dummy player 1)
+            lead_agent: Agent for player 3 (Lead)
         """
         self.contract = contract
         self.agents = {
             PlayerType.DEFENDER_1: defender1_agent,
+            PlayerType.DUMMY: dummy_agent,
             PlayerType.DEFENDER_2: defender2_agent,
             PlayerType.LEAD: lead_agent
         }
@@ -174,10 +177,8 @@ class BridgePlay:
         self.current_trick = []
         
         for _ in range(4):
-            # Get the appropriate agent
-            # Player 1 (Dummy) is controlled by Player 3 (Declarer)
-            agent_id = PlayerType.LEAD if self.current_player == PlayerType.DUMMY else self.current_player
-            agent = self.agents[agent_id]
+            # Get the agent for current player
+            agent = self.agents[self.current_player]
             
             # Get observation and action
             observation = self.get_observation(self.current_player)

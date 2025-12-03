@@ -24,7 +24,7 @@ class PlayObservation:
         contract: Number of tricks the lead team bid to win
         legal_actions: List of legal cards that can be played from this hand
         player_id: The ID of the player making this decision (0, 1, 2, or 3)
-        dummy_hand: Dummy's hand (visible to all players after opening lead, None before)
+        dummy_hand: Dummy's hand (visible to all players for simplicity)
     """
     hand: List[Card]
     current_trick: List[Card]
