@@ -91,10 +91,10 @@ class RuleBasedAgent(BridgePlayAgent):
         
         if best_suit and best_suit in my_suits:
             # Lead highest card from that suit
-            return max(my_suits[best_suit], key=lambda c: c.rank_value())
+            return self._highest(my_suits[best_suit])
         
         # Fallback: lead highest card overall
-        return max(hand, key=lambda c: c.rank_value())
+        return self._highest(hand)
     
     def get_action_dummy(self, observation: PlayObservation) -> Card:
         """
@@ -129,21 +129,22 @@ class RuleBasedAgent(BridgePlayAgent):
             my_beating_cards = [c for c in my_cards_in_suit if c.rank_value() > d1_card.rank_value()]
             
             if lead_can_beat:
-                # Lead can win - play lowest to conserve our high cards
-                return min(my_cards_in_suit, key=lambda c: c.rank_value())
+                # Lead can win - play lowest to conserve our high cards,
+                # since they can beat with more information later if needed
+                return self._lowest(my_cards_in_suit)
             
             elif my_beating_cards:
                 # Lead can't win but we can - beat with minimum needed
                 # (D2 plays next, so we need to beat potential D2 cards too)
                 # Play our highest beater to maximize chance of holding through D2
-                return max(my_beating_cards, key=lambda c: c.rank_value())
+                return self._highest(my_beating_cards)
             
             else:
                 # Neither can beat - play lowest
-                return min(my_cards_in_suit, key=lambda c: c.rank_value())
+                return self._lowest(my_cards_in_suit)
         
         # Can't follow suit - discard lowest from weakest suit
-        # Consider Lead's hand: discard from suit where Lead is strong
+        # Look at the lead's hand: discard from suit where Lead is strong
         if lead_hand:
             lead_suits = self._group_by_suit(lead_hand)
             # Find suit where Lead is strongest (we can discard from there)
@@ -151,10 +152,10 @@ class RuleBasedAgent(BridgePlayAgent):
                 if suit in lead_suits and len(lead_suits[suit]) >= 3:
                     discards = [c for c in hand if c.suit == suit]
                     if discards:
-                        return min(discards, key=lambda c: c.rank_value())
+                        return self._lowest(discards)
         
         # Fallback: discard lowest overall
-        return min(hand, key=lambda c: c.rank_value())
+        return self._lowest(hand)
     
     def get_action_defender2(self, observation: PlayObservation) -> Card:
         """
@@ -180,20 +181,20 @@ class RuleBasedAgent(BridgePlayAgent):
             
             if d1_winning:
                 # Partner winning - play lowest to conserve
-                return min(cards_in_suit, key=lambda c: c.rank_value())
+                return self._lowest(cards_in_suit)
             
             # Dummy is winning - try to beat it
             beating = [c for c in cards_in_suit 
                       if c.rank_value() > winning_card.rank_value()]
             if beating:
                 # Beat with minimum card needed
-                return min(beating, key=lambda c: c.rank_value())
+                return self._lowest(beating)
             
             # Can't beat - play lowest
-            return min(cards_in_suit, key=lambda c: c.rank_value())
+            return self._lowest(cards_in_suit)
         
         # Can't follow suit - discard lowest
-        return min(hand, key=lambda c: c.rank_value())
+        return self._lowest(hand)
     
     def get_action_lead(self, observation: PlayObservation) -> Card:
         """
@@ -202,7 +203,7 @@ class RuleBasedAgent(BridgePlayAgent):
         perfect information: Sees all 3 cards before deciding.
         Partner: Dummy (played second)
         
-        Strategy:
+        Strat:
         - If Dummy (partner) is winning: play LOWEST (save resources)
         - If defender winning: beat with MINIMUM card needed
         - If can't win: dump lowest card
@@ -219,19 +220,19 @@ class RuleBasedAgent(BridgePlayAgent):
             
             if dummy_winning:
                 # Partner winning - play lowest (economical)
-                return min(cards_in_suit, key=lambda c: c.rank_value())
+                return self._lowest(cards_in_suit)
             
             # Opponent winning - beat with minimum
             beating = [c for c in cards_in_suit 
                       if c.rank_value() > winning_card.rank_value()]
             if beating:
-                return min(beating, key=lambda c: c.rank_value())
+                return self._lowest(beating)
             
             # Can't win - dump lowest
-            return min(cards_in_suit, key=lambda c: c.rank_value())
+            return self._lowest(cards_in_suit)
         
         # Can't follow suit - discard lowest
-        return min(hand, key=lambda c: c.rank_value())
+        return self._lowest(hand)
     
     
     def _group_by_suit(self, cards: List[Card]) -> dict:
@@ -242,3 +243,11 @@ class RuleBasedAgent(BridgePlayAgent):
                 suits[card.suit] = []
             suits[card.suit].append(card)
         return suits
+    
+    def _lowest(self, cards: List[Card]) -> Card:
+        """Return the lowest card by rank."""
+        return min(cards, key=lambda c: c.rank_value())
+    
+    def _highest(self, cards: List[Card]) -> Card:
+        """Return the highest card by rank."""
+        return max(cards, key=lambda c: c.rank_value())
