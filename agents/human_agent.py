@@ -23,7 +23,7 @@ class HumanAgent(BridgePlayAgent):
         """
         # Print deatil of game state
         print(f"\n=== Player {observation.player_id}'s Turn ===")
-        print(f"Trick {observation.trick_index + 1}/13")
+        print(f"Trick {observation.tricks_played + 1}/13")
         print(f"Contract: {observation.contract} tricks")
         print(f"\nCurrent trick: {observation.current_trick}")
         print(f"\nYour hand: {sorted(observation.hand, key=lambda c: (c.suit, c.rank_value()))}")

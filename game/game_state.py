@@ -20,15 +20,19 @@ class PlayObservation:
     Attributes:
         hand: List of cards in the agent's hand (updated as cards are played)
         current_trick: List of cards played in current trick (position indicates player)
-        trick_index: Current trick number (0-12)
+        tricks_played: Number of tricks completed so far (0-12)
+        tricks_won: Number of tricks won by this player's team so far
         contract: Number of tricks the lead team bid to win
         legal_actions: List of legal cards that can be played from this hand
         player_id: The ID of the player making this decision (0, 1, 2, or 3)
-        dummy_hand: Dummy's hand (visible to all players for simplicity)
+        dummy_hand: Partner's visible hand (Dummy sees Lead's hand, others see Dummy's hand)
+            In the dummy's perspective, the lead's hand is the alternative hand [cannot use these cards]
+            but should be aware of there values.
     """
     hand: List[Card]
     current_trick: List[Card]
-    trick_index: int
+    tricks_played: int
+    tricks_won: int
     contract: int
     legal_actions: List[Card]
     player_id: int

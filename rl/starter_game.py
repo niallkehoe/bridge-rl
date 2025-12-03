@@ -9,6 +9,7 @@ from game.game_state import PlayerType
 from agents.random_agent import RandomAgent
 from agents.high_card_agent import HighCardAgent
 from agents.low_card_agent import LowCardAgent
+from agents.rule_based_agent import RuleBasedAgent
 from typing import Dict, List, Tuple
 import time
 
@@ -212,6 +213,20 @@ def run_baseline_comparison():
             'dummy': HighCardAgent,
             'defender2': HighCardAgent,
             'lead': HighCardAgent,
+        },
+        {
+            'name': 'Rule-Based Everyone',
+            'defender1': RuleBasedAgent,
+            'dummy': RuleBasedAgent,
+            'defender2': RuleBasedAgent,
+            'lead': RuleBasedAgent,
+        },
+        {
+            'name': 'Rule-Based Lead vs Random',
+            'defender1': RandomAgent,
+            'dummy': RuleBasedAgent,
+            'defender2': RandomAgent,
+            'lead': RuleBasedAgent,
         },
     ]
     

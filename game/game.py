@@ -116,19 +116,13 @@ class BridgePlay:
         
         led_suit = self.current_trick[0].suit
         
-        # Find the highest card in the led suit
-        highest_value = -1
-        winner_position = -1
+        # Find winner: highest card_value in led suit (non-matching suits return 0)
+        winner_position = max(
+            range(len(self.current_trick)),
+            key=lambda pos: self.current_trick[pos].card_value(led_suit)
+        )
         
-        for position, card in enumerate(self.current_trick):
-            if card.suit == led_suit:
-                if card.rank_value() > highest_value:
-                    highest_value = card.rank_value()
-                    winner_position = position
-        
-        # Convert position to player ID
-        winner = winner_position % 4
-        return winner
+        return winner_position % 4
     
     def play_card(self, player_id: int, card: Card):
         """
@@ -159,13 +153,26 @@ class BridgePlay:
         Returns:
             PlayObservation object
         """
-        # Dummy hand is visible to all players always (slight hack, should be after tick 0 and play 0)
-        dummy_hand = self.hands[PlayerType.DUMMY].copy()
+        # For Dummy player: show Lead's hand (partner) instead of their own
+        # For everyone else: show Dummy's hand
+        if player_id == PlayerType.DUMMY:
+            dummy_hand = self.hands[PlayerType.LEAD].copy()
+        else:
+            dummy_hand = self.hands[PlayerType.DUMMY].copy()
+        
+        # Calculate tricks won by this player's team
+        if player_id in [PlayerType.DUMMY, PlayerType.LEAD]:
+            # Lead team
+            team_tricks = self.tricks_won[PlayerType.DUMMY] + self.tricks_won[PlayerType.LEAD]
+        else:
+            # Defender team
+            team_tricks = self.tricks_won[PlayerType.DEFENDER_1] + self.tricks_won[PlayerType.DEFENDER_2]
         
         return PlayObservation(
             hand=self.hands[player_id].copy(),
             current_trick=self.current_trick.copy(),
-            trick_index=self.trick_index,
+            tricks_played=self.trick_index,
+            tricks_won=team_tricks,
             contract=self.contract,
             legal_actions=self.get_legal_actions(player_id),
             player_id=player_id,
