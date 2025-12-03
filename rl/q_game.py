@@ -25,14 +25,25 @@ def main():
     
     # Example 1: Run a single configuration
     print("\nExample 1: Single Configuration")
+
+    defender1 = RandomAgent(PlayerType.DEFENDER_1)
+    dummy = RandomAgent(PlayerType.DUMMY)
+    defender2 = RandomAgent(PlayerType.DEFENDER_2)
+    lead = DeepQLearningAgent(PlayerType.LEAD)
+
+    def on_game_end(observation_action_history, lead_score, defender_score):
+        #dummy.on_game_end(observation_action_history, lead_score, defender_score)
+        lead.on_game_end(observation_action_history, lead_score, defender_score)
+
     runner = GameRunner(
-        defender1_agent_class=DeepQLearningAgent,
-        dummy_agent_class=DeepQLearningAgent,
-        defender2_agent_class=DeepQLearningAgent,
-        lead_agent_class=DeepQLearningAgent,
-        contract=7
+        defender1_agent=defender1,
+        dummy_agent=dummy,
+        defender2_agent=defender2,
+        lead_agent=lead,
+        contract=6,
+        on_game_end = on_game_end
     )
-    runner.run_games(n_games=1000)
+    runner.run_games(n_games=100000)
 
 if __name__ == "__main__":
     main()

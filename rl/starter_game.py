@@ -115,14 +115,22 @@ class GameRunner:
             print(f"{'='*60}\n")
         
         start_time = time.time()
+        last_time = time.time()
         self.results = []
         
         for i in range(n_games):
             result = self.run_game()
             self.results.append(result)
             
-            if verbose and (i + 1) % 100 == 0:
+            if verbose and (i + 1) % 1000 == 0 and i > 1000:
                 print(f"  Completed {i + 1}/{n_games} games...")
+                elapsed = time.time() - last_time
+                stats = self._compute_specific_statistics(self.results[-1000:])
+                stats['n_games'] = 1000
+                stats['elapsed_time'] = elapsed
+                stats['games_per_second'] = 1000 / elapsed if elapsed > 0 else 0
+                self._print_statistics(stats)
+                last_time = time.time()
         
         elapsed = time.time() - start_time
         
@@ -136,6 +144,26 @@ class GameRunner:
             self._print_statistics(stats)
         
         return stats
+    
+    def _compute_specific_statistics(self, results: List) -> Dict:
+        """Compute aggregate statistics from some game results."""
+        
+        lead_wins = sum(1 for r in results if r['lead_won'])
+        lead_made = sum(1 for r in results if r['lead_made_contract'])
+        
+        total_lead_score = sum(r['lead_score'] for r in results)
+        total_lead_tricks = sum(r['lead_tricks'] for r in results)
+        total_defender_tricks = sum(r['defender_tricks'] for r in results)
+        
+        n = len(results)
+        
+        return {
+            'lead_win_rate': lead_wins / n,
+            'lead_contract_rate': lead_made / n,
+            'avg_lead_score': total_lead_score / n,
+            'avg_lead_tricks': total_lead_tricks / n,
+            'avg_defender_tricks': total_defender_tricks / n,
+        }
     
     def _compute_statistics(self) -> Dict:
         """Compute aggregate statistics from all game results."""
