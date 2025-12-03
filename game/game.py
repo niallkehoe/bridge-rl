@@ -215,8 +215,8 @@ class BridgePlay:
         # Save trick to history
         self.trick_history.append(self.current_trick.copy())
         
-        # Winner leads next trick
-        self.current_player = winner
+        # Winner leads next trick #DISABLED 
+        self.current_player = 0 #winner
         self.trick_index += 1
     
     def calculate_scores(self) -> Tuple[int, int]:

@@ -47,10 +47,11 @@ class DeepQLearningAgent(BridgePlayAgent):
         Returns:
             Card to play
         """
-
+        print(observation)
         formatted_observation = self.format_observation(observation)
         q_values = self.q_network(formatted_observation)
-        return self.format_response(q_values, observation, formatted_observation)
+        print(self.format_response(q_values, observation, formatted_observation), observation.legal_actions)
+        return self.format_response(q_values, observation, formatted_observation)[0]
     
     def format_observation(self, observation: PlayObservation) -> list[float]:            
         club_hand = []
@@ -58,13 +59,13 @@ class DeepQLearningAgent(BridgePlayAgent):
         heart_hand = []
         spade_hand = []
         for card in observation.hand:
-            if card.suit == Card.Suit.CLUB:
+            if card.suit == 'C':
                 club_hand.append(card.rank_value())
-            elif card.suit == Card.Suit.DIAMOND:
+            elif card.suit == 'D':
                 diamond_hand.append(card.rank_value())
-            elif card.suit == Card.Suit.HEART:
+            elif card.suit == 'H':
                 heart_hand.append(card.rank_value())
-            elif card.suit == Card.Suit.SPADE:
+            elif card.suit == 'S':
                 spade_hand.append(card.rank_value())
         club_hand = sorted(club_hand, reverse=True) + [0] * (13 - len(club_hand))
         diamond_hand = sorted(diamond_hand, reverse=True) + [0] * (13 - len(diamond_hand))
@@ -76,20 +77,20 @@ class DeepQLearningAgent(BridgePlayAgent):
         dummy_heart_hand = []
         dummy_spade_hand = []
         for card in observation.dummy_hand:
-            if card.suit == Card.Suit.CLUB:
+            if card.suit == 'C':
                 dummy_club_hand.append(card.rank_value())
-            elif card.suit == Card.Suit.DIAMOND:
+            elif card.suit == 'D':
                 dummy_diamond_hand.append(card.rank_value())
-            elif card.suit == Card.Suit.HEART:
+            elif card.suit == 'H':
                 dummy_heart_hand.append(card.rank_value())
-            elif card.suit == Card.Suit.SPADE:
+            elif card.suit == 'S':
                 dummy_spade_hand.append(card.rank_value())
         dummy_club_hand = sorted(dummy_club_hand, reverse=True) + [0] * (13 - len(dummy_club_hand))
         dummy_diamond_hand = sorted(dummy_diamond_hand, reverse=True) + [0] * (13 - len(dummy_diamond_hand))
         dummy_heart_hand = sorted(dummy_heart_hand, reverse=True) + [0] * (13 - len(dummy_heart_hand))
         dummy_spade_hand = sorted(dummy_spade_hand, reverse=True) + [0] * (13 - len(dummy_spade_hand))
 
-        formatted_observation = club_hand + diamond_hand + heart_hand + spade_hand + dummy_club_hand + dummy_diamond_hand + [observation.contract, observation.tricks_won]
+        formatted_observation = club_hand + diamond_hand + heart_hand + spade_hand + dummy_club_hand + dummy_diamond_hand + dummy_heart_hand + dummy_spade_hand + [observation.contract, observation.tricks_won]
         
         if self.player_type != PlayerType.DEFENDER_1:
             trick_suit = observation.current_trick[0].suit
