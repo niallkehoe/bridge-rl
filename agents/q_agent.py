@@ -28,7 +28,7 @@ class DeepQLearningAgent(BridgePlayAgent):
     def __init__(self, player_type: PlayerType):
         self.q_network = QLearningNetwork(13*8+player_type+2+4*(player_type != PlayerType.DEFENDER_1), 52)
         self.optimizer = torch.optim.Adam(self.q_network.parameters(), lr=0.001)
-        self.training = False
+        self.training = True
         super().__init__(player_type)
 
     def train(self):
