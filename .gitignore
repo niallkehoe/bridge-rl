@@ -1,1 +1,3 @@
 __pycache__/
+rl/q_network_3_c6_lead_dummy.pt
+rl/q_network_3_c7_lead.pt

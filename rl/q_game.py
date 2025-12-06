@@ -3,7 +3,7 @@ from pathlib import Path
 
 # Add parent directory to path for imports
 sys.path.append("../")
-
+import torch
 from game.game import BridgePlay
 from game.game_state import PlayerType, PlayObservation, GameResult
 from game.card import Card
@@ -27,11 +27,15 @@ def main():
     print("\nExample 1: Single Configuration")
 
     defender1 = RandomAgent(PlayerType.DEFENDER_1)
-    dummy = RandomAgent(PlayerType.DUMMY)
+    #dummy = RandomAgent(PlayerType.DUMMY)
+    dummy = DeepQLearningAgent(PlayerType.DUMMY)
     defender2 = RandomAgent(PlayerType.DEFENDER_2)
     lead = DeepQLearningAgent(PlayerType.LEAD)
 
     def on_game_end(observation_action_history, lead_score, defender_score):
+        with open("scores_c6_lead_dummy.txt", "a") as f:
+            f.write(str(lead_score-defender_score) + "\n\n")
+
         #dummy.on_game_end(observation_action_history, lead_score, defender_score)
         lead.on_game_end(observation_action_history, lead_score, defender_score)
 
@@ -41,9 +45,10 @@ def main():
         defender2_agent=defender2,
         lead_agent=lead,
         contract=6,
-        on_game_end = on_game_end
+        on_game_end = on_game_end,
+        seed = None
     )
-    runner.run_games(n_games=100000)
+    runner.run_games(n_games=1000000)
 
 if __name__ == "__main__":
     main()

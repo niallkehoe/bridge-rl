@@ -1,4 +1,5 @@
 import sys
+import random
 from pathlib import Path
 
 # Add parent directory to path for imports
@@ -28,7 +29,8 @@ class GameRunner:
         defender2_agent,
         lead_agent,
         contract: int = 7,
-        on_game_end: Optional[GameCallback] = None
+        on_game_end: Optional[GameCallback] = None,
+        seed: int = None
     ):
         """
         Initialize the game runner.
@@ -49,6 +51,7 @@ class GameRunner:
         self.lead = lead_agent
         self.contract = contract
         self.on_game_end = on_game_end
+        self.seed = seed
         
         # Statistics
         self.results: List[Dict] = []
@@ -66,7 +69,8 @@ class GameRunner:
             defender1_agent=self.defender1,
             dummy_agent=self.dummy,
             defender2_agent=self.defender2,
-            lead_agent=self.lead
+            lead_agent=self.lead,
+            seed=self.seed
         )
         
         result = game.play_game()
@@ -122,15 +126,18 @@ class GameRunner:
             result = self.run_game()
             self.results.append(result)
             
-            if verbose and (i + 1) % 1000 == 0 and i > 1000:
+            if verbose and (i + 1) % 10000 == 0 and i+1 >= 10000:
                 print(f"  Completed {i + 1}/{n_games} games...")
                 elapsed = time.time() - last_time
-                stats = self._compute_specific_statistics(self.results[-1000:])
-                stats['n_games'] = 1000
+                stats = self._compute_specific_statistics(self.results[-10000:])
+                stats['n_games'] = 10000
                 stats['elapsed_time'] = elapsed
-                stats['games_per_second'] = 1000 / elapsed if elapsed > 0 else 0
+                stats['games_per_second'] = 10000 / elapsed if elapsed > 0 else 0
                 self._print_statistics(stats)
                 last_time = time.time()
+            #if (i+1) % 1 == 0:
+            #    if self.seed is not None:
+            #        self.seed = random.randint(0, 100000000000)
         
         elapsed = time.time() - start_time
         

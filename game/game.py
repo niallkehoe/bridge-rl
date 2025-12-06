@@ -37,7 +37,8 @@ class BridgePlay:
                  defender1_agent: BridgePlayAgent,
                  dummy_agent: BridgePlayAgent,
                  defender2_agent: BridgePlayAgent,
-                 lead_agent: BridgePlayAgent
+                 lead_agent: BridgePlayAgent,
+                 seed: int = None
     ):
         """
         Initialize a Bridge Play game.
@@ -74,14 +75,18 @@ class BridgePlay:
             PlayerType.DEFENDER_2: [],
             PlayerType.LEAD: [],
         }
+
+        self.seed = seed
         
     def create_deck(self) -> List[Card]:
         """Create a standard 52-card deck."""
         return [Card(suit, rank) for suit in self.SUITS for rank in self.RANKS]
     
-    def deal(self):
+    def deal(self, seed: int = None):
         """Deal cards to all players (13 each)."""
         deck = self.create_deck()
+        if seed:
+            random.seed(seed)
         random.shuffle(deck)
         
         for i in range(4):
@@ -240,7 +245,8 @@ class BridgePlay:
             GameResult with final scores and game history
         """
         # Deal cards
-        self.deal()
+
+        self.deal(seed=self.seed)
         
         # Play all 13 tricks
         for _ in range(13):
